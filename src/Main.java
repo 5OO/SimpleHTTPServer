@@ -24,7 +24,7 @@ public class Main {
                     String line;
                     line = bufferedReader.readLine();
                     while (!line.isBlank()) {
-                        request.append(line + "\r\n");
+                        request.append(line).append("\r\n");
                         line = bufferedReader.readLine();
                     }
                     String firstLine = String.valueOf(request.toString().split("\n")[0]);
@@ -33,12 +33,12 @@ public class Main {
 
 
                     if (resource.equals("/cat")) {
-                        System.out.println(resource.equals("/cat"));
+//                        System.out.println(resource.equals("/cat"));
                         FileInputStream image = new FileInputStream("me.jpg");
                         OutputStream clientOutput = client.getOutputStream();
                         clientOutput.write(("HTTP/1.1 200 OK}\r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
-                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+//                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());  // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
                         clientOutput.write(image.readAllBytes());
                         clientOutput.flush();
                     } else if (resource.equals("/hello")) {
@@ -56,12 +56,13 @@ public class Main {
                         clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
                         clientOutput.write(fileInputStream.readAllBytes());
                         clientOutput.flush();
+                        // TODO serveerib indexi, aga gallery.html kuvamisega jääb hätta. uurib mida ja kuidas edasi vaja teha, et teiste failide serveerimine tööle saada.
                     } else {
                         OutputStream clientOutput = client.getOutputStream();
                         clientOutput.write(("HTTP/1.1 200 OK}\r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
                         clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
-                        clientOutput.write(("404 not found!\r\n").getBytes());
+                        clientOutput.write(("error 404; resource  " + resource + " not found!\r\n").getBytes());
                         clientOutput.flush();
                     }
 
