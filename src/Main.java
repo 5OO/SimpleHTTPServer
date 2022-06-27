@@ -38,71 +38,55 @@ public class Main {
                     } else {
                         String fileName = fileNameSplit[0];
                     }
+                    System.out.println("  fileNameSplit.length > 1 " + (fileNameSplit.length > 1));
                     String fileName = fileNameSplit[0].substring(1);
-                    String fileExtension = fileNameSplit[1];
-
-
-                    if (fileExtension.equals("jpg")){
-
-                            FileInputStream image = new FileInputStream("./resources/"+fileName+".jpg");
-                            OutputStream clientOutput = client.getOutputStream();
-                            clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
-                            clientOutput.write(("\r\n").getBytes());
-//                          clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());  // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
-                            clientOutput.write(image.readAllBytes());
-                            clientOutput.flush();
-                            client.close();
-                        }
-//                    case "/cat.jpg": {
-//                            FileInputStream image = new FileInputStream("./resources/me.jpg");
-//                            OutputStream clientOutput = client.getOutputStream();
-//                            clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
-//                            clientOutput.write(("\r\n").getBytes());
-////                          clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());  // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
-//                            clientOutput.write(image.readAllBytes());
-//                            clientOutput.flush();
-//                            client.close();
-//                            break;
-//                        }
-//                        case "/hello": {
-//                            OutputStream clientOutput = client.getOutputStream();
-//                            clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
-//                            clientOutput.write(("\r\n").getBytes());
-//                            clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
-//                            clientOutput.write(("See on Hello World!\r\n").getBytes());
-//                            clientOutput.flush();
-//                            client.close();
-//                            break;
-//                        }
-//                        case "/":
-//                        case "/index.htm":
-//                        case "/index.html": {
-//                            FileInputStream fileInputStream = new FileInputStream("./index.html");
-//                            OutputStream clientOutput = client.getOutputStream();
-//                            clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
-//                            clientOutput.write(("\r\n").getBytes());
-//                            clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
-//                            clientOutput.write(fileInputStream.readAllBytes());
-//                            clientOutput.flush();
-//                            client.close();
-//                            break;
-//                        }
-//                        default: {
-//                            OutputStream clientOutput = client.getOutputStream();
-//                            clientOutput.write(("HTTP/1.1 404 Not Found}\r\n").getBytes());
-//                            clientOutput.write(("\r\n").getBytes());
-//                            clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
-//                            clientOutput.write(("error 404: resource  " + resource + " not found!\r\n").getBytes());
-//                            clientOutput.flush();
-//                            client.close();
-//                            break;
-//                        }
+                    String fileExtension = "";
+                    if (fileNameSplit.length > 1) {
+                        fileExtension = fileNameSplit[1];
                     }
 
 
-//                } catch (NullPointerException e) {
-//                    System.out.println("NullPointerException thrown! ln73");
-//                }
+                    if (fileExtension.equals("jpg")) {
+
+                        FileInputStream image = new FileInputStream("./resources/" + fileName + ".jpg");
+                        OutputStream clientOutput = client.getOutputStream();
+                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("\r\n").getBytes());
+//                          clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());  // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
+                        clientOutput.write(image.readAllBytes());
+                        clientOutput.flush();
+                        client.close();
+                    } else if (resource.equals("/hello")) {
+
+
+                        OutputStream clientOutput = client.getOutputStream();
+                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("\r\n").getBytes());
+                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+                        clientOutput.write(("See on Hello World!\r\n").getBytes());
+                        clientOutput.flush();
+                        client.close();
+                    } else if (resource.equals("/") || resource.equals("/index.htm") || resource.equals("/index.html")) {
+
+                        FileInputStream fileInputStream = new FileInputStream("./index.html");
+                        OutputStream clientOutput = client.getOutputStream();
+                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("\r\n").getBytes());
+                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+                        clientOutput.write(fileInputStream.readAllBytes());
+                        clientOutput.flush();
+                        client.close();
+                    } else {
+                        OutputStream clientOutput = client.getOutputStream();
+                        clientOutput.write(("HTTP/1.1 404 Not Found}\r\n").getBytes());
+                        clientOutput.write(("\r\n").getBytes());
+                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+                        clientOutput.write(("error 404: resource  " + resource + " not found!\r\n").getBytes());
+                        clientOutput.flush();
+                        client.close();
+                    }
+                }
+
 
             }
         } catch (
