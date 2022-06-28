@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -48,7 +45,7 @@ public class Main {
 
                     if (fileExtension.equals("jpg")) {
 
-                        FileInputStream image = new FileInputStream("./resources/" + fileName + ".jpg");
+                        FileInputStream image = new FileInputStream("./" + fileName + ".jpg");
                         OutputStream clientOutput = client.getOutputStream();
                         clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
@@ -56,6 +53,8 @@ public class Main {
                         clientOutput.write(image.readAllBytes());
                         clientOutput.flush();
                         client.close();
+
+
                     } else if (resource.equals("/hello")) {
 
 
@@ -66,6 +65,8 @@ public class Main {
                         clientOutput.write(("See on Hello World!\r\n").getBytes());
                         clientOutput.flush();
                         client.close();
+
+
                     } else if (resource.equals("/") || resource.equals("/index.htm") || resource.equals("/index.html")) {
 
                         FileInputStream fileInputStream = new FileInputStream("./index.html");
@@ -76,6 +77,19 @@ public class Main {
                         clientOutput.write(fileInputStream.readAllBytes());
                         clientOutput.flush();
                         client.close();
+
+                    } else if (fileExtension.equals("html")) {
+
+                        FileInputStream fileInputStream = new FileInputStream("./" + fileName + ".html");
+                        OutputStream clientOutput = client.getOutputStream();
+                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("\r\n").getBytes());
+                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+                        clientOutput.write(fileInputStream.readAllBytes());
+                        clientOutput.flush();
+                        client.close();
+
+
                     } else {
                         OutputStream clientOutput = client.getOutputStream();
                         clientOutput.write(("HTTP/1.1 404 Not Found}\r\n").getBytes());
