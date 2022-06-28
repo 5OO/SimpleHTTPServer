@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
 
@@ -27,27 +29,36 @@ public class Main {
 
                     String resource = getRequestedResourceString(request);
 
-
-                    String[] fileNameSplit = resource.split("\\.");
-                    String fileNameLeadString = fileNameSplit[0].substring(0, 1);
-                    if (fileNameLeadString.matches("/")) {
-                        String fileName = fileNameSplit[0].substring(1);
-                    } else {
-                        String fileName = fileNameSplit[0];
-                    }
-                    System.out.println("  fileNameSplit.length > 1 " + (fileNameSplit.length > 1));
-                    String fileName = fileNameSplit[0].substring(1);
+                    String fileName = "";
                     String fileExtension = "";
-                    if (fileNameSplit.length > 1) {
-                        fileExtension = fileNameSplit[1];
+
+                    String[] fileNameSplitByDot = resource.split("\\.");
+                    int length = fileNameSplitByDot.length;
+                    String fileNameLeadString = fileNameSplitByDot[0].substring(0, 1);
+                    if (fileNameLeadString.matches("/")) {
+                        fileName = fileNameSplitByDot[0].substring(1);
+                    } else {
+                        fileName = fileNameSplitByDot[0];
+                    }
+//                    System.out.println("  fileNameSplitByDot.length > 1 " + (fileNameSplitByDot.length > 1));
+                    fileName = fileNameSplitByDot[0].substring(1);
+
+                    if (fileNameSplitByDot.length > 1) {
+                        fileExtension = fileNameSplitByDot[1];
                     }
 
+                    Path browserPathAbsolute = Paths.get(resource).toAbsolutePath();
+                    Path browserPathRealPath = Paths.get(resource).toRealPath();
+                    System.out.println( " path abs + real");
+                    System.out.println(browserPathAbsolute + " absolute path");
+                    System.out.println(browserPathRealPath + " real path on see");
+//                    getPathNames(resource);
+                    System.out.format(resource + "   ****   resursi värk  on siin  %s%n");
 
                     if (fileExtension.equals("jpg")) {
-
                         FileInputStream image = new FileInputStream("./" + fileName + ".jpg");
                         OutputStream clientOutput = client.getOutputStream();
-                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("HTTP/1.0 200 OK\r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
 //                          clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());  // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
                         clientOutput.write(image.readAllBytes());
@@ -59,7 +70,7 @@ public class Main {
 
 
                         OutputStream clientOutput = client.getOutputStream();
-                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("HTTP/1.0 200 OK\r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
                         clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
                         clientOutput.write(("See on Hello World!\r\n").getBytes());
@@ -71,9 +82,9 @@ public class Main {
 
                         FileInputStream fileInputStream = new FileInputStream("./index.html");
                         OutputStream clientOutput = client.getOutputStream();
-                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
-                        clientOutput.write(("\r\n").getBytes());
-                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+                        clientOutput.write(("HTTP/1.0 200 OK \r\n").getBytes());
+                        clientOutput.write((" \r\n").getBytes());
+//                        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
                         clientOutput.write(fileInputStream.readAllBytes());
                         clientOutput.flush();
                         client.close();
@@ -82,7 +93,7 @@ public class Main {
 
                         FileInputStream fileInputStream = new FileInputStream("./" + fileName + ".html");
                         OutputStream clientOutput = client.getOutputStream();
-                        clientOutput.write(("HTTP/1.0 200 OK}\r\n").getBytes());
+                        clientOutput.write(("HTTP/1.0 200 OK \r\n").getBytes());
                         clientOutput.write(("\r\n").getBytes());
                         clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
                         clientOutput.write(fileInputStream.readAllBytes());
@@ -99,20 +110,33 @@ public class Main {
                         clientOutput.flush();
                         client.close();
                     }
+                } catch (IOException x) {
+                    System.err.format("IOExeption: %s%n ", x);
                 }
 
 
             }
         } catch (
                 NullPointerException e) {
-            System.out.println("NullPointerException thrown! ln 79");
+            System.err.format("NullPointerException thrown! %s%n", e);
         }
     }
+
+
+    private static void getPathNames(String directoryPath) {
+        String[] pathNames;
+        File file = new File(directoryPath);
+        pathNames = file.list();
+        for (String pathName : pathNames) {
+            System.out.println(pathName);
+        }
+    }
+
 
     private static String getRequestedResourceString(StringBuilder request) {
         String firstLine = String.valueOf(request.toString().split("\n")[0]);
         String resource = firstLine.split(" ")[1];
 //        System.out.println("see ongi  resurss " +resource);
-        return resource;
+        return "." + resource;
     }
 }
