@@ -20,6 +20,7 @@ public class Main {
                     String resource = getRequestedResourceString(request);
 
                     String fileExtension = "";
+
                     String[] fileNameSplitByDot = resource.split("\\.");
                     String fileName = fileNameSplitByDot[0].substring(1);
 
@@ -27,37 +28,53 @@ public class Main {
                     if (fileNameSplitByDot.length > 1) {
                         fileExtension = fileNameSplitByDot[1];
                     }
-
-
+//                    verifyIfDirectoryExists(resource);
                     if (fileExtension.equals("jpg")) {
-                        verifyIfFileExists(client, resource, fileExtension, fileName);
-                        displayImageToOutput(client, fileName);
-
+                        if (verifyIfFileExists(fileName, fileExtension)) {
+                            displayImageToOutput(client, fileName);
+                        } else {
+                            displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
+                        }
 
                     } else if (resource.equals("/hello")) {
 
-                        displayOutputMessage(client, "HTTP/1.0 200 OK\r\n", "\r\n", ("See on Hello World!\r\n").getBytes());
-
+                        displayOutputMessage(client, "HTTP/1.0 200 OK\r\n", ("See on Hello World!\r\n").getBytes());
 
                     } else if (resource.equals("/")) {
-
                         FileInputStream fileInputStream = new FileInputStream("./index.html");
-                        displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", " \r\n", fileInputStream.readAllBytes());
+                        displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", fileInputStream.readAllBytes());
 
                     } else if (fileExtension.equals("html")) {
-                        verifyIfFileExists(client, resource, fileExtension, fileName);
+                        verifyIfFileExists(fileExtension, fileName);
                         FileInputStream fileInputStream = new FileInputStream("./" + fileName + ".html");
-                        displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", "\r\n", fileInputStream.readAllBytes());
-
+                        displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", fileInputStream.readAllBytes());
 
                     } else {
-                        displayOutputMessage(client, "HTTP/1.1 404 Not Found}\r\n", "\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
+// TODO vanan mõte - lõpetada kataloogi sisu kuvamine
+                        //TODO uus1 - ükskõik mis failid serveris kuvada gif, wav vms
+                        // TODO uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse JSON; + POST päringud.
+                        // TODO uus3 parameetritega päring api/salary?a=7/b=8 get päring paalga parameetritega
+//                        TODO uus 4 POST päringud
+                        if (verifyIfDirectoryExists(resource)) {
+
+                            String[] directoryListing = generateDirectoryListingSimple(resource);
+                            PrintWriter printWriter = new PrintWriter(client.getOutputStream());
+
+                            printWriter.write("HTTP/1.0 200 OK \r\n");
+                            printWriter.write("\r\n");
+                            for (int i = 0; i < directoryListing.length; i++) {
+                                printWriter.write(directoryListing[i]+"\r\n");
+                            }
+                            printWriter.flush();
+                            printWriter.close();
+
+                        } else {
+                            displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
+                        }
                     }
                 } catch (IOException x) {
                     System.err.format("IOExeption: %s%n ", x);
                 }
-
-
             }
         } catch (
                 NullPointerException e) {
@@ -76,12 +93,45 @@ public class Main {
         return request;
     }
 
-    private static void verifyIfFileExists(Socket client, String resource, String fileExtension, String fileName) throws IOException {
+    private static boolean verifyIfFileExists(String fileName, String fileExtension) throws IOException {
         File newFile = new File(fileName + "." + fileExtension);
-        boolean fileExists = newFile.exists();
-        if (!fileExists) {
-            displayOutputMessage(client, "HTTP/1.1 404 Not Found}\r\n", "\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
+        boolean fileExists;
+        if (newFile.exists()) {
+            fileExists = true;
+        } else fileExists = false;
+        return fileExists;
+    }
+
+    private static boolean verifyIfDirectoryExists(String fileName) throws IOException {
+        File newFile = new File("." + fileName);
+        boolean isDirectory;
+        if (newFile.isDirectory()) {
+            isDirectory = true;
+        } else isDirectory = false;
+        return isDirectory;
+    }
+
+    private static String[] generateDirectoryListingSimple(String fileName) {
+        File folder = new File("." + fileName);
+        File[] listOfFiles = folder.listFiles();
+        String[] fileList = folder.list();
+        return fileList;
+
+    }
+
+    private static String[] generateDirectoryListingLong(String fileName) {
+        File folder = new File("." + fileName);
+        File[] listOfFiles = folder.listFiles();
+        String[] fileList = new String[listOfFiles.length];
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                fileList[i] = "File      \\\\" + listOfFiles[i];
+            } else if (listOfFiles[i].isDirectory()) {
+                fileList[i] = "Directory \\\\" + listOfFiles[i];
+            }
         }
+        return fileList;
     }
 
     private static void displayImageToOutput(Socket client, String fileName) throws IOException {
@@ -94,16 +144,14 @@ public class Main {
         client.close();
     }
 
-    private static void displayOutputMessage(Socket client, String x, String x1, byte[] resource) throws IOException {
+    private static void displayOutputMessage(Socket client, String x, byte[] resource) throws IOException {
         OutputStream clientOutput = client.getOutputStream();
         clientOutput.write(x.getBytes());
-        clientOutput.write(x1.getBytes());
-//        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
+        clientOutput.write(("\r\n").getBytes());
         clientOutput.write(resource);
         clientOutput.flush();
         client.close();
     }
-
 
     private static String getRequestedResourceString(StringBuilder request) {
         String firstLine = String.valueOf(request.toString().split("\n")[0]);
@@ -113,3 +161,4 @@ public class Main {
 }
 
 // https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
+//        clientOutput.write("<head> <link rel=\"icon\" href=\"data:,\"> </head>\r\n".getBytes());
