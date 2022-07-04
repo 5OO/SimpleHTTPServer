@@ -78,8 +78,8 @@ public class Main {
 
         printWriter.write("HTTP/1.0 200 OK \r\n");
         printWriter.write("\r\n");
-        for (int i = 0; i < directoryListing.length; i++) {
-            printWriter.write(directoryListing[i] + "\r\n");
+        for (String s : directoryListing) {
+            printWriter.write(s + "\r\n");
         }
         printWriter.flush();
         printWriter.close();
@@ -116,7 +116,6 @@ public class Main {
 
     private static String[] generateDirectoryListingSimple(String fileName) {
         File folder = new File("." + fileName);
-        File[] listOfFiles = folder.listFiles();
         String[] fileList = folder.list();
         return fileList;
 
@@ -163,8 +162,7 @@ public class Main {
 
     private static String getRequestedResourceString(StringBuilder request) {
         String firstLine = String.valueOf(request.toString().split("\n")[0]);
-        String resource = firstLine.split(" ")[1];
-        return resource;
+        return firstLine.split(" ")[1];
     }
 }
 
