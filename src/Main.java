@@ -50,24 +50,14 @@ public class Main {
                         displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", fileInputStream.readAllBytes());
 
                     } else {
-// TODO vanan mõte - lõpetada kataloogi sisu kuvamine
                         //TODO uus1 - ükskõik mis failid serveris kuvada gif, wav vms
                         // TODO uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse JSON; + POST päringud.
                         // TODO uus3 parameetritega päring api/salary?a=7/b=8 get päring paalga parameetritega
 //                        TODO uus 4 POST päringud
                         if (verifyIfDirectoryExists(resource)) {
 
-                            String[] directoryListing = generateDirectoryListingSimple(resource);
-                            PrintWriter printWriter = new PrintWriter(client.getOutputStream());
-
-                            printWriter.write("HTTP/1.0 200 OK \r\n");
-                            printWriter.write("\r\n");
-                            for (int i = 0; i < directoryListing.length; i++) {
-                                printWriter.write(directoryListing[i]+"\r\n");
-                            }
-                            printWriter.flush();
-                            printWriter.close();
-
+//                            generateDirectoryListing(client, resource);
+                            generateDirectoryListingLong(client, resource);
                         } else {
                             displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
                         }
@@ -80,6 +70,19 @@ public class Main {
                 NullPointerException e) {
             System.err.format("NullPointerException thrown! %s%n", e);
         }
+    }
+
+    private static void generateDirectoryListing(Socket client, String resource) throws IOException {
+        String[] directoryListing = generateDirectoryListingSimple(resource);
+        PrintWriter printWriter = new PrintWriter(client.getOutputStream());
+
+        printWriter.write("HTTP/1.0 200 OK \r\n");
+        printWriter.write("\r\n");
+        for (int i = 0; i < directoryListing.length; i++) {
+            printWriter.write(directoryListing[i] + "\r\n");
+        }
+        printWriter.flush();
+        printWriter.close();
     }
 
     private static StringBuilder getStringBuilder(BufferedReader bufferedReader) throws IOException {
@@ -119,19 +122,24 @@ public class Main {
 
     }
 
-    private static String[] generateDirectoryListingLong(String fileName) {
+    private static void generateDirectoryListingLong(Socket client, String fileName) throws IOException {
         File folder = new File("." + fileName);
         File[] listOfFiles = folder.listFiles();
         String[] fileList = new String[listOfFiles.length];
 
+        PrintWriter printWriter = new PrintWriter(client.getOutputStream());
+        printWriter.write("HTTP/1.0 200 OK \r\n");
+        printWriter.write("\r\n");
+        printWriter.write("content listing for: " + fileName + "  \r  \n");
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
-                fileList[i] = "File      \\\\" + listOfFiles[i];
+                printWriter.write(fileList[i] = "File      " + listOfFiles[i] + "  \r\n");
             } else if (listOfFiles[i].isDirectory()) {
-                fileList[i] = "Directory \\\\" + listOfFiles[i];
+                printWriter.write(fileList[i] = "Directory " + listOfFiles[i] + " \r \n");
             }
         }
-        return fileList;
+        printWriter.flush();
+        printWriter.close();
     }
 
     private static void displayImageToOutput(Socket client, String fileName) throws IOException {
