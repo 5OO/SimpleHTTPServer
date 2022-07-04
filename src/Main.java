@@ -19,68 +19,62 @@ public class Main {
 
                     String resource = getRequestedResourceString(request);
 
-                    String fileExtension = "";
-
                     String[] fileNameSplitByDot = resource.split("\\.");
                     String fileName = fileNameSplitByDot[0].substring(1);
 
-
                     if (fileNameSplitByDot.length > 1) {
-                        fileExtension = fileNameSplitByDot[1];
                     }
-//                    verifyIfDirectoryExists(resource);
-                    if (fileExtension.equals("jpg")) {
-                        if (verifyIfFileExists(fileName, fileExtension)) {
-                            displayImageToOutput(client, fileName);
-                        } else {
-                            displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
-                        }
 
-                    } else if (resource.equals("/hello")) {
-
-                        displayOutputMessage(client, "HTTP/1.0 200 OK\r\n", ("See on Hello World!\r\n").getBytes());
-
-                    } else if (resource.equals("/")) {
+                    if (resource.equals("/")) {
                         FileInputStream fileInputStream = new FileInputStream("./index.html");
                         displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", fileInputStream.readAllBytes());
+                        System.out.println(" jõudsin siia  ***  index   ****");
 
-                    } else if (fileExtension.equals("html")) {
-                        verifyIfFileExists(fileExtension, fileName);
-                        FileInputStream fileInputStream = new FileInputStream("./" + fileName + ".html");
+                    } else if (verifyIfFileOrFolderExists(resource)) {
+                        if (verifyIfFile(resource)) {
+
+                        FileInputStream fileInputStream = new FileInputStream("." + resource);
                         displayOutputMessage(client, "HTTP/1.0 200 OK \r\n", fileInputStream.readAllBytes());
+//                        sendFileToOutputStream(client, resource);
+                            System.out.println(" jõudsin siia  failide kuvmine ****");
 
-                    } else {
-                        //TODO uus1 - ükskõik mis failid serveris kuvada gif, wav vms
-                        // TODO uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse JSON; + POST päringud.
-                        // TODO uus3 parameetritega päring api/salary?a=7/b=8 get päring paalga parameetritega
-//                        TODO uus 4 POST päringud
-                        if (verifyIfDirectoryExists(resource)) {
-
-//                            generateDirectoryListing(client, resource);
-                            generateDirectoryListingLong(client, resource);
-                        } else {
-                            displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
                         }
+
+//                    }
+//                    else if (verifyIfDirectoryExists(resource)) {
+//                        //TODO uus1 - ükskõik mis failid serveris kuvada gif, wav vms
+//                        // TODO uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse JSON; + POST päringud.
+//                        // TODO uus3 parameetritega päring api/salary?a=7/b=8 get päring paalga parameetritega
+////                        TODO uus4 POST päringud
+//                        System.out.println(" jõudsin siia ** folder print **");
+//                        generateDirectoryListingLong(client, resource);
+                    } else {
+                        displayOutputMessage(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
+                        System.out.println(" tuli veateade 404 0");
                     }
-                } catch (IOException x) {
-                    System.err.format("IOExeption: %s%n ", x);
                 }
             }
-        } catch (
-                NullPointerException e) {
-            System.err.format("NullPointerException thrown! %s%n", e);
-        }
-    }
+        } catch (IOException x) {
+            System.err.format("IOExeption: %s%n ", x);
 
-    private static void generateDirectoryListing(Socket client, String resource) throws IOException {
-        String[] directoryListing = generateDirectoryListingSimple(resource);
+        }
+
+    }
+//    catch(
+//    NullPointerException e)
+//
+//    {
+//        System.err.format("NullPointerException thrown! %s%n", e);
+//    }
+
+
+    private static void sendFileToOutputStream(Socket client, String resource) throws IOException {
+
         PrintWriter printWriter = new PrintWriter(client.getOutputStream());
 
         printWriter.write("HTTP/1.0 200 OK \r\n");
         printWriter.write("\r\n");
-        for (String s : directoryListing) {
-            printWriter.write(s + "\r\n");
-        }
+        printWriter.write(resource);
         printWriter.flush();
         printWriter.close();
     }
@@ -104,6 +98,25 @@ public class Main {
         } else fileExists = false;
         return fileExists;
     }
+
+    private static boolean verifyIfFileOrFolderExists(String fullPath) throws IOException {
+        File newFile = new File("."+ fullPath);
+        boolean fileExists;
+        if (newFile.exists()) {
+            fileExists = true;
+        } else fileExists = false;
+        return fileExists;
+    }
+
+    private static boolean verifyIfFile(String fullPath) throws IOException {
+        File newFile = new File("."+ fullPath);
+        boolean fileItIs;
+        if (newFile.isFile()) {
+            fileItIs = true;
+        } else fileItIs = false;
+        return fileItIs;
+    }
+
 
     private static boolean verifyIfDirectoryExists(String fileName) throws IOException {
         File newFile = new File("." + fileName);
