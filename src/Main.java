@@ -10,6 +10,8 @@ import java.util.List;
 
 public class Main {
 
+    public static final String CODE200 = "HTTP/1.0 200 OK \r\n";
+
     public static void main(String[] args) throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             System.out.println(" lihtne HTTP server käivitatud \n ootame uusi sõnumeid");
@@ -49,13 +51,31 @@ public class Main {
         } else if (verifyIfFile(resource)) {
             sendResponse(client, "HTTP/1.0 200 OK \r\n", Files.readAllBytes(Path.of(".", resource)));
         } else if (verifyIfDirectoryExists(resource)) {
-            List<byte[]> fileListing= generateDirectoryListingLong(client, resource); // kas siin saaks ka sendResponse meetodit kasutada? kui generateDirectoryListingLong() annaks valja byte[]?
-
-            sendResponse(client, "HTTP/1.0 200 OK \r\n",fileListing);
+            List<byte[]> fileListing = generateDirectoryListingLong(client, resource); // kas siin saaks ka sendResponse meetodit kasutada? kui generateDirectoryListingLong() annaks valja byte[]?
+            byte[] response = listToByteArray(fileListing);
+            sendResponse(client, CODE200, response);
         } else {
             sendResponse(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
         }
     }
+
+    private static byte[] listToByteArray(List<byte[]> fileListing) {
+        byte[] newByteArray = new byte[0];
+        int byteLength = 0;
+        for (byte[] bytes : fileListing) {
+            newByteArray = Arrays.copyOf(newByteArray, byteLength + bytes.length + 2);
+            for (int i = 0; i < bytes.length; i++) {
+                newByteArray[byteLength + i] = bytes[i];
+                newByteArray[byteLength + i + 1] = 13;
+                newByteArray[byteLength + i + 2] = 10;
+
+            }
+
+            byteLength = newByteArray.length;
+        }
+        return newByteArray;
+    }
+
 
     private static void sendFileToOutputStream(Socket client, String resource) throws IOException {
 
@@ -95,10 +115,10 @@ public class Main {
         return isDirectory;
     }
 
-      private static List<byte[]> generateDirectoryListingLong(Socket client, String fileName) throws IOException {
+    private static List<byte[]> generateDirectoryListingLong(Socket client, String fileName) throws IOException {
         File folder = new File("." + fileName);
         File[] listOfFiles = folder.listFiles();
-          List<byte[]> fileListing = new ArrayList<>();
+        List<byte[]> fileListing = new ArrayList<>();
 
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isDirectory()) {
@@ -108,12 +128,11 @@ public class Main {
                 fileListing.add(listOfFiles[i].getName().getBytes(StandardCharsets.UTF_8));
             }
         }
-//          fileListing.toString();
-          return fileListing;
+        return fileListing;
     }
 
 
-//byte array stringiks
+    //byte array stringiks
     private static void sendResponse(Socket client, String status, byte[] response) throws IOException {
         OutputStream clientOutput = client.getOutputStream();
         clientOutput.write(status.getBytes());
