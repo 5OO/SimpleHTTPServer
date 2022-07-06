@@ -53,6 +53,7 @@ public class Main {
             String queryParameter = extractQueryParameter(resource);
             int input = Integer.parseInt(queryParameter);
             SalaryInformationResponse response = getSalaryInformation(new GrossSalary(BigDecimal.valueOf(input)));
+            sendResponse(client,CODE200,response.toString().getBytes(StandardCharsets.UTF_8));
             System.out.println(response);
         } else if (resource.equals("/api/salary")) {
             SalaryInformationResponse response = getSalaryInformation(new GrossSalary(BigDecimal.valueOf(5000)));
