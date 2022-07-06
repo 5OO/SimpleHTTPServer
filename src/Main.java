@@ -1,4 +1,8 @@
+import domain.GrossSalary;
+import service.SalaryInformationResponse;
+
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -7,6 +11,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static service.SalaryCalculatorService.getSalaryInformation;
 
 public class Main {
 
@@ -35,18 +41,27 @@ public class Main {
 
         String resource = getRequestedResource(request);
 
-        // TODO uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse JSON; + POST päringud.
-        // TODO uus3 parameetritega päring api/salary?a=7/b=8 get päring paalga parameetritega
-//                        TODO uus4 POST päringud
+        //  tehtud  uus2 API päring /salary - siis käivitab palgakalkulaatori ja annab vastuse
+        // tehtud  uus3 parameetritega päring api/salary?a=7/b=8 get päring palga parameetritega
+//                        TODO uus4 POST päringud JSON; + POST päringud.
 
 
         if (resource.equals("/")) {
             resource = "/index.html";
         }
+        if (resource.contains("?")) {
+            String queryParameter = extractQueryParameter(resource);
+            int input = Integer.parseInt(queryParameter);
+            SalaryInformationResponse response = getSalaryInformation(new GrossSalary(BigDecimal.valueOf(input)));
+            System.out.println(response);
+        } else if (resource.equals("/api/salary")) {
+            SalaryInformationResponse response = getSalaryInformation(new GrossSalary(BigDecimal.valueOf(5000)));
+            System.out.println(response);
 
-        if (resource.equals("/api/salary")) {
-            // ....
-            // sendResponse(...)
+            String toOutput = String.valueOf(response);
+            byte[] newOutput = toOutput.getBytes(StandardCharsets.UTF_8);
+            sendResponse(client, CODE200, newOutput);
+
 
         } else if (verifyIfFile(resource)) {
             sendResponse(client, "HTTP/1.0 200 OK \r\n", Files.readAllBytes(Path.of(".", resource)));
@@ -57,36 +72,33 @@ public class Main {
         } else {
             sendResponse(client, "HTTP/1.0 404 Not Found}\r\n", ("error 404: resource  " + resource + " not found!\r\n").getBytes());
         }
+
     }
+
+    private static String extractQueryParameter(String resource) {
+        String queryParameter = resource.substring(resource.indexOf("?"));
+        queryParameter = queryParameter.split("&")[0];
+        return queryParameter.split("=")[1];
+    }
+
+
 
     private static byte[] listToByteArray(List<byte[]> fileListing) {
         byte[] newByteArray = new byte[0];
-        int byteLength = 0;
+        int byteArrayLength = 0;
         for (byte[] bytes : fileListing) {
-            newByteArray = Arrays.copyOf(newByteArray, byteLength + bytes.length + 2);
+            newByteArray = Arrays.copyOf(newByteArray, byteArrayLength + bytes.length + 2);
             for (int i = 0; i < bytes.length; i++) {
-                newByteArray[byteLength + i] = bytes[i];
-                newByteArray[byteLength + i + 1] = 13;
-                newByteArray[byteLength + i + 2] = 10;
-
+                newByteArray[byteArrayLength + i] = bytes[i];
+                newByteArray[byteArrayLength + i + 1] = 13;  // lisa rea lõppu  return carriage
+                newByteArray[byteArrayLength + i + 2] = 10; // lisa rea lõppu ka new line
             }
 
-            byteLength = newByteArray.length;
+            byteArrayLength = newByteArray.length;
         }
         return newByteArray;
     }
 
-
-    private static void sendFileToOutputStream(Socket client, String resource) throws IOException {
-
-        PrintWriter printWriter = new PrintWriter(client.getOutputStream());
-
-        printWriter.write("HTTP/1.0 200 OK \r\n");
-        printWriter.write("\r\n");
-        printWriter.write(resource);
-        printWriter.flush();
-        printWriter.close();
-    }
 
     private static List<String> readRequest(BufferedReader bufferedReader) throws IOException {
         List<String> request = new ArrayList<>();
@@ -132,7 +144,7 @@ public class Main {
     }
 
 
-    //byte array stringiks
+
     private static void sendResponse(Socket client, String status, byte[] response) throws IOException {
         OutputStream clientOutput = client.getOutputStream();
         clientOutput.write(status.getBytes());
@@ -144,6 +156,30 @@ public class Main {
     private static String getRequestedResource(List<String> request) {
         String firstLine = request.get(0);
         return firstLine.split(" ")[1];
+    }
+
+    private static String parseURL(List<String> request) {
+        String host, path, query, queryParam1, queryParam2;
+        host = request.get(1);
+        host = host.split("\\s")[1];
+        path = getRequestedResource(request);
+        query = path.split("\\?")[1];
+        queryParam1 = query.split("&")[0];
+        queryParam2 = query.split("&")[1];
+        queryParam1 = queryParam1.split("=")[1];
+        queryParam2 = queryParam2.split("=")[2];
+        return queryParam1;
+    }
+
+    private static void sendFileToOutputStream(Socket client, String resource) throws IOException {
+
+        PrintWriter printWriter = new PrintWriter(client.getOutputStream());
+
+        printWriter.write("HTTP/1.0 200 OK \r\n");
+        printWriter.write("\r\n");
+        printWriter.write(resource);
+        printWriter.flush();
+        printWriter.close();
     }
 }
 
